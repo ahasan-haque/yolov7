@@ -1,0 +1,13 @@
+# download command/URL (optional)
+#download: bash ./scripts/get_coco.sh
+
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: /mnt/nfs-students/data-for-yolov7-training/train.txt 
+val: /mnt/nfs-students/data-for-yolov7-training/val.txt
+test: /mnt/nfs-students/data-for-yolov7-training/test.txt  
+
+# number of classes
+nc: 10
+
+# class names
+names: [ 'bottle', 'box', 'can', 'cup', 'remote', 'teapot', 'cutlery', 'glass', 'tube', 'shoe' ]
