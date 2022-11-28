@@ -10,4 +10,7 @@ test: /mnt/nfs-students/data-for-yolov7-training/test.txt
 nc: 10
 
 # class names
-names: [ 'bottle', 'box', 'can', 'cup', 'remote', 'teapot', 'cutlery', 'glass', 'tube', 'shoe' ]
+#names: [ 'bottle', 'box', 'can', 'cup', 'remote', 'teapot', 'cutlery', 'glass', 'tube', 'shoe' ]
+
+
+names: [ 'box', 'can', 'teapot', 'cutlery', 'glass', 'tube', 'shoe' ]
