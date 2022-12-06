@@ -1,0 +1,18 @@
+path: /mnt/nfs-students/data-for-yolov7-training  # dataset root dir
+train: train.txt  # train images (relative to 'path') 118287 images
+val: val.txt  # val images (relative to 'path') 5000 images
+test: test.txt  # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+
+# Classes
+
+names:
+  0: bottle
+  1: box
+  2: can
+  3: cup
+  4: remote
+  5: teapot
+  6: cutlery
+  7: glass
+  8: tube
+  9: shoe
