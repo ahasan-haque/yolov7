@@ -33,6 +33,7 @@ from pathlib import Path
 import torch
 import torch.backends.cudnn as cudnn
 import cv2
+from point_cloud_generation import show_mask
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -152,11 +153,12 @@ def run(
                 masks = process_mask(proto[i], det[:, 6:], det[:, :4], im.shape[2:], upsample=True)  # HWC
                 
                 for i, mask in enumerate(masks):
-                    output = mask.cpu().numpy()
-                    cv2.imwrite(f'../../{i}.png', output)
+                    show_mask(f"/Users/ahasan/Downloads/personal/yolov7_object_detection/{i}.pcd", mask)
+                    #create_point_cloud_from_mask(mask)
+                    #output = mask.cpu().numpy()
+                    #cv2.imwrite(f'../../{i}.png', output)
 
                 exit()
-
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
 
