@@ -93,7 +93,7 @@ def scale_masks(img1_shape, masks, img0_shape, ratio_pad=None):
     # masks = F.interpolate(masks, img0_shape[:2], mode='bilinear', align_corners=False)[0]
     # masks = masks.permute(1, 2, 0).contiguous()
     # masks_h, masks_w, n
-    masks = cv2.resize(masks, (img0_shape[1], img0_shape[0]))
+    masks = cv2.resize(masks, (img0_shape[1], img0_shape[0]), interpolation=cv2.INTER_NEAREST)
 
     # keepdim
     if len(masks.shape) == 2:

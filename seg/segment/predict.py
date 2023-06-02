@@ -33,7 +33,6 @@ from pathlib import Path
 import torch
 import torch.backends.cudnn as cudnn
 import cv2
-from point_cloud_generation import show_mask
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -56,6 +55,7 @@ def run(
         weights=ROOT / 'yolov5s-seg.pt',  # model.pt path(s)
         source=ROOT / 'data/images',  # file/dir/URL/glob, 0 for webcam
         data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
+        gt=ROOT / 'data/gt',
         imgsz=(640, 640),  # inference size (height, width)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.45,  # NMS IOU threshold
@@ -80,7 +80,9 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
 ):
+    
     source = str(source)
+    gt = str(gt)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
     is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -106,13 +108,14 @@ def run(
         bs = len(dataset)  # batch_size
     else:
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt)
+        ground_truth = LoadImages(gt, img_size=imgsz, stride=stride, auto=pt)
         bs = 1  # batch_size
     vid_path, vid_writer = [None] * bs, [None] * bs
 
     # Run inference
     model.warmup(imgsz=(1 if pt else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
-    for path, im, im0s, vid_cap, s in dataset:
+    for (path, im, im0s, vid_cap, s), (gt_path, gt_im, gt_im0s, gt_vid_cap, gt_s) in zip(dataset, ground_truth):
         with dt[0]:
             im = torch.from_numpy(im).to(device)
             im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
@@ -151,7 +154,11 @@ def run(
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
                 masks = process_mask(proto[i], det[:, 6:], det[:, :4], im.shape[2:], upsample=True)  # HWC
-                
+                is_person = det[:, 5] == 0
+                masks = torch.masked_select(masks, is_person.unsqueeze(1).unsqueeze(2)).view(-1, masks.shape[1], masks.shape[2])
+                print("tmp.shape:", masks.shape)
+                #print(type(masks), masks.shape, torch.unique(masks))
+                """
                 for i, mask in enumerate(masks):
                     show_mask(f"/Users/ahasan/Downloads/personal/yolov7_object_detection/{i}.pcd", mask)
                     #create_point_cloud_from_mask(mask)
@@ -159,18 +166,21 @@ def run(
                     #cv2.imwrite(f'../../{i}.png', output)
 
                 exit()
+                """
                 # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
-
+                #det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
                 # Print results
-                for c in det[:, 5].unique():
-                    n = (det[:, 5] == c).sum()  # detections per class
-                    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                #for c in det[:, 5].unique():
+                #    n = (det[:, 5] == c).sum()  # detections per class
+                #    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Mask plotting ----------------------------------------------------------------------------------------
-                mcolors = [colors(int(cls), True) for cls in det[:, 5]]
+                mcolors = [colors(int(cls), True) for cls in det[:, 5] if cls==0]
                 im_masks = plot_masks(im[i], masks, mcolors)  # image with masks shape(imh,imw,3)
                 annotator.im = scale_masks(im.shape[2:], im_masks, im0.shape)  # scale to original h, w
+                #print(type(annotator.im), annotator.im.shape, np.unique(annotator.im))
+                #exit(0)
+
                 # Mask plotting ----------------------------------------------------------------------------------------
 
                 # Write results
@@ -180,6 +190,10 @@ def run(
                         line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
                         with open(f'{txt_path}.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
+                    
+                    if save_img or save_crop or view_img:
+                        c = int(cls)
+                        #print(f"value of c: {c}, name: {names[c]}")
                     """
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class

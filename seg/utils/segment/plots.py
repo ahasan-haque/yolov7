@@ -31,12 +31,17 @@ def plot_masks(img, masks, colors, alpha=0.5):
 
     # [n, 1, 1, 3]
     # faster this way to transform colors
-    colors = torch.tensor(colors, device=img.device).float() / 255.0
-    colors = colors[:, None, None, :]
+    #colors = torch.tensor(colors, device=img.device).float() / 255.0
+    #colors = colors[:, None, None, :]
+    colors = torch.tensor([[[[0, 0, 1]]]])
+    black = torch.zeros_like(img_gpu)
     # [n, h, w, 1]
     masks = masks[:, :, :, None]
-    masks_color = masks.repeat(1, 1, 1, 3) * colors * alpha
-    inv_alph_masks = masks * (-alpha) + 1
+    #masks_color = masks.repeat(1, 1, 1, 3) * colors * alpha
+    #inv_alph_masks = masks * (-alpha) + 1
+    masks_color = masks.repeat(1, 1, 1, 3) * colors
+    """
+    inv_alph_masks = masks * colors
     masks_color_summand = masks_color[0]
     if num_masks > 1:
         inv_alph_cumul = inv_alph_masks[:(num_masks - 1)].cumprod(dim=0)
@@ -47,8 +52,13 @@ def plot_masks(img, masks, colors, alpha=0.5):
     img_gpu = img_gpu.flip(dims=[0])  # filp channel for opencv
     img_gpu = img_gpu.permute(1, 2, 0).contiguous()
     # [h, w, 3]
-    img_gpu = img_gpu * inv_alph_masks.prod(dim=0) + masks_color_summand
-    return (img_gpu * 255).byte().cpu().numpy()
+    """
+    black = black.flip(dims=[0]).permute(1,2, 0).contiguous()
+    new_img = black + masks_color.sum(dim=0)
+    return (new_img * 255).byte().cpu().numpy()
+    # [h, w, 3]
+    #img_gpu = img_gpu * inv_alph_masks.prod(dim=0) + masks_color_summand
+    #return (img_gpu * 255).byte().cpu().numpy()
 
 
 @threaded
