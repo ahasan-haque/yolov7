@@ -29,7 +29,7 @@ import os
 import platform
 import sys
 from pathlib import Path
-
+import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import cv2
@@ -159,29 +159,10 @@ def run(
                 masks = process_mask(proto[i], det[:, 6:], det[:, :4], im.shape[2:], upsample=True)  # HWC
                 is_person = det[:, 5] == 0
                 masks = torch.masked_select(masks, is_person.unsqueeze(1).unsqueeze(2)).view(-1, masks.shape[1], masks.shape[2])
-                #print(type(masks), masks.shape, torch.unique(masks))
-                """
-                for i, mask in enumerate(masks):
-                    show_mask(f"/Users/ahasan/Downloads/personal/yolov7_object_detection/{i}.pcd", mask)
-                    #create_point_cloud_from_mask(mask)
-                    #output = mask.cpu().numpy()
-                    #cv2.imwrite(f'../../{i}.png', output)
-
-                exit()
-                """
-                # Rescale boxes from img_size to im0 size
-                #det[:, :4] = scale_coords(im.shape[2:], det[:, :4], im0.shape).round()
-                # Print results
-                #for c in det[:, 5].unique():
-                #    n = (det[:, 5] == c).sum()  # detections per class
-                #    s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-
                 # Mask plotting ----------------------------------------------------------------------------------------
                 mcolors = [colors(int(cls), True) for cls in det[:, 5] if cls==0]
                 im_masks = plot_masks(im[i], masks, mcolors)  # image with masks shape(imh,imw,3)
                 annotator.im = scale_masks(im.shape[2:], im_masks, im0.shape)  # scale to original h, w
-                #print(type(annotator.im), annotator.im.shape, np.unique(annotator.im))
-                #exit(0)
 
                 # Mask plotting ----------------------------------------------------------------------------------------
 
@@ -196,14 +177,6 @@ def run(
                     if save_img or save_crop or view_img:
                         c = int(cls)
                         #print(f"value of c: {c}, name: {names[c]}")
-                    """
-                    if save_img or save_crop or view_img:  # Add bbox to image
-                        c = int(cls)  # integer class
-                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
-                    if save_crop:
-                        save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-                    """
             # Stream results
             im0 = annotator.result()
             if view_img:
@@ -213,26 +186,8 @@ def run(
                     cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
-            import numpy as np
-            imo_backup = im0.copy()
-            imo_backup[imo_backup != 0] = 1
-            print(
-              f'''
-              img: 
-              {(imo_backup[:,:,0]!=imo_backup[:,:,1]).sum()}
-              {(imo_backup[:,:,0]!=imo_backup[:,:,2]).sum()}
-              {(imo_backup[:,:,1]!=imo_backup[:,:,2]).sum()}
-              '''
-            )
-            print(
-              f'''
-              gt: 
-              {(gt_im0s[:,:,0]!=gt_im0s[:,:,1]).sum()}
-              {(gt_im0s[:,:,0]!=gt_im0s[:,:,2]).sum()}
-              {(gt_im0s[:,:,1]!=gt_im0s[:,:,2]).sum()}
-              '''
-            )
-            
+            imo_backup = im0[:,:,2].copy()
+            imo_backup[imo_backup != 0] = 1            
             intersection = np.sum(imo_backup * gt_im0s)
             union = np.sum(imo_backup)  + np.sum(gt_im0s) - intersection
             total_intersection += intersection

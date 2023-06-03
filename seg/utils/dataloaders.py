@@ -315,19 +315,17 @@ class LoadGroundTruths:
 
         # Read image
         self.count += 1
-        pil_image = Image(path)
-        im0 = np.array(pil_image)
+        #pil_image = Image.open(path)
+        #im0 = np.array(pil_image)
+        im0 = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        im0[im0 == 255] = 1
         assert im0 is not None, f'Image Not Found {path}'
         s = f'image {self.count}/{self.nf} {path}: '
 
         if self.transforms:
-            print("have some transforms")
             im = self.transforms(cv2.cvtColor(im0, cv2.COLOR_BGR2RGB))  # transforms
         else:
-            print("no transforms")
             im = letterbox(im0, self.img_size, stride=self.stride, auto=self.auto)[0]  # padded resize
-            #im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-            #im = np.ascontiguousarray(im)  # contiguous
 
         return path, im, im0, self.cap, s
 
