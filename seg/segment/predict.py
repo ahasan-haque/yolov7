@@ -161,7 +161,7 @@ def run(
                 masks = torch.masked_select(masks, is_person.unsqueeze(1).unsqueeze(2)).view(-1, masks.shape[1], masks.shape[2])
                 # Mask plotting ----------------------------------------------------------------------------------------
                 mcolors = [colors(int(cls), True) for cls in det[:, 5] if cls==0]
-                im_masks = plot_masks(im[i], masks, mcolors)  # image with masks shape(imh,imw,3)
+                im_masks = plot_masks(im[i].cpu(), masks.cpu(), mcolors)  # image with masks shape(imh,imw,3)
                 annotator.im = scale_masks(im.shape[2:], im_masks, im0.shape)  # scale to original h, w
 
                 # Mask plotting ----------------------------------------------------------------------------------------
