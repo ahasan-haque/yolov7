@@ -25,6 +25,6 @@ RUN python3.9 -m pip install --upgrade pip && python3.9 -m pip install -r seg/re
 
 RUN git clone https://github.com/ahasan-haque/yolov7_object_detection
 
-WORKDIR /app/yolov7_object_detection/seg
+WORKDIR /app/seg
 
 CMD sh -c 'python3.9 segment/predict.py'
